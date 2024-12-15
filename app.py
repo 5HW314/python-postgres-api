@@ -1,7 +1,7 @@
 import os
 import psycopg2
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 load_dotenv()
 
@@ -16,13 +16,16 @@ def home():
 #Insert New User
 @app.post('/users')
 def add_user():
-    with connection.cursor() as cursor:
-        cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s), (Maharaj, maharaj@example.com), (Surbhi, subhu@example.com)")
-        connection.commit()
-    return "User Added!"
+    data = request.get_json()
+    name = data['name']
+    email = data['email']
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute('INSERT INTO users (name, email) VALUES (%s, %s)', (name, email))
+    return {}, 201
 
 #Query Data
-@app.route('/users')
+@app.get('/users')
 def get_user():
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM users")
@@ -32,6 +35,6 @@ def get_user():
         result = [dict(zip(column_names, row)) for row in rows]
     return jsonify(result)
 
-# Run the app
-if __name__=='_main_':
-    ap.run(debug=True)
+# # Run the app
+# if __name__=='_main_':
+#     ap.run(debug=True)
